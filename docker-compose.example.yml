@@ -1,0 +1,14 @@
+services:
+  bitable-sync:
+    build: .
+    ports:
+      - "8787:8787"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8787
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?set APP_ENCRYPTION_KEY}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?set ADMIN_TOKEN}
+      DATA_FILE: /app/data/store.json
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

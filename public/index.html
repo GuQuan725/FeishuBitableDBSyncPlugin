@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>多维表格 · 数据库同步</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark">↗</span><div><strong>多维表格 · 数据库同步</strong><small>Feishu Bitable Data Link</small></div></div>
+        <div class="top-actions"><span id="health" class="status-pill pending">检查服务中…</span><button id="refresh" class="icon-button" title="刷新">↻</button></div>
+      </header>
+      <main class="layout">
+        <aside class="sidebar">
+          <div class="side-title">同步向导</div>
+          <nav id="steps">
+            <button class="step active" data-step="1"><span>1</span><div><b>数据库连接</b><small>选择数据源</small></div></button>
+            <button class="step" data-step="2"><span>2</span><div><b>选择数据表</b><small>发现表与字段</small></div></button>
+            <button class="step" data-step="3"><span>3</span><div><b>字段映射</b><small>配置目标字段</small></div></button>
+            <button class="step" data-step="4"><span>4</span><div><b>同步设置</b><small>预览并运行</small></div></button>
+          </nav>
+          <div class="side-note"><span class="shield">✓</span><div><b>凭据安全</b><p>数据库密码和飞书密钥仅在服务端加密保存。</p></div></div>
+        </aside>
+        <section class="content">
+          <div id="toast" class="toast" role="status"></div>
+          <section class="panel" data-panel="1">
+            <div class="panel-heading"><div><h1>连接数据库</h1><p>配置一个只读连接，插件会自动发现可同步的数据表。</p></div><span class="step-badge">STEP 01</span></div>
+            <form id="connection-form" class="form-grid">
+              <label class="wide">连接名称<input name="name" required placeholder="例如：生产库订单" /></label>
+              <label>数据库类型<select name="type" id="db-type"><option value="postgres">PostgreSQL</option><option value="mysql">MySQL / MariaDB</option><option value="sqlite">SQLite</option></select></label>
+              <label id="filename-wrap" class="hidden">文件路径<input name="filename" placeholder="./data/app.db 或 :memory:" /></label>
+              <label class="network-field">主机<input name="host" placeholder="db.example.com" /></label>
+              <label class="network-field">端口<input name="port" type="number" placeholder="5432" /></label>
+              <label class="network-field">数据库名<input name="database" placeholder="app" /></label>
+              <label class="network-field">用户名<input name="user" placeholder="readonly" /></label>
+              <label class="network-field">密码<input name="password" type="password" autocomplete="new-password" placeholder="••••••••" /></label>
+              <label class="wide">连接字符串（可选）<input name="connectionString" placeholder="postgresql://user:password@host:5432/db" /><small>填写后会覆盖主机、端口等字段；服务端会加密保存。</small></label>
+              <div class="form-actions wide"><button class="primary" type="submit">测试并保存连接 <span>→</span></button></div>
+            </form>
+            <div id="connections" class="saved-list"></div>
+          </section>
+
+          <section class="panel hidden" data-panel="2">
+            <div class="panel-heading"><div><h1>选择数据表</h1><p>选择要同步的源表，并查看字段类型。</p></div><span class="step-badge">STEP 02</span></div>
+            <div class="toolbar"><select id="connection-select"></select><button id="load-tables" class="secondary">刷新数据表</button></div>
+            <div id="tables" class="table-picker empty-state">请先选择数据库连接。</div>
+            <div class="form-actions"><button class="secondary prev">← 上一步</button><button id="to-mapping" class="primary">下一步：配置字段 →</button></div>
+          </section>
+
+          <section class="panel hidden" data-panel="3">
+            <div class="panel-heading"><div><h1>配置字段映射</h1><p>把源字段映射到飞书多维表格字段，可为每个字段选择转换方式。</p></div><span class="step-badge">STEP 03</span></div>
+            <div class="target-card">
+              <div class="target-icon">▦</div><div><b>目标多维表格</b><small>填写飞书应用凭据后可加载数据表和字段</small></div>
+              <div class="target-actions"><button id="load-feishu-tables" class="secondary">加载目标表</button><button id="load-feishu" class="secondary">加载目标字段</button></div>
+            </div>
+            <div class="feishu-credentials form-grid compact">
+              <label>App ID<input id="app-id" placeholder="cli_xxx" /></label><label>App Secret<input id="app-secret" type="password" placeholder="••••••••" /></label>
+              <label class="wide">多维表格 App Token<input id="app-token" placeholder="bascn…" /></label>
+              <label class="wide">目标数据表<select id="feishu-table-select"><option value="">先加载目标表</option></select><input id="table-id" placeholder="tbl…（也可手动填写）" /></label>
+            </div>
+            <div id="mapping" class="mapping-list empty-state">选择源表后会显示字段。</div>
+            <div class="form-actions"><button class="secondary prev">← 上一步</button><button id="to-options" class="primary">下一步：同步设置 →</button></div>
+          </section>
+
+          <section class="panel hidden" data-panel="4">
+            <div class="panel-heading"><div><h1>同步设置</h1><p>选择同步策略，先预览几行数据确认映射，再运行任务。</p></div><span class="step-badge">STEP 04</span></div>
+            <div class="options-grid">
+              <label>同步模式<select id="sync-mode"><option value="upsert">更新或新增（推荐）</option><option value="append">仅新增</option></select></label>
+              <label>唯一键（源字段）<select id="key-field"><option value="">不使用唯一键</option></select></label>
+              <label>批量大小<input id="batch-size" type="number" min="1" max="500" value="500" /></label>
+              <label>每页读取<input id="page-size" type="number" min="1" max="5000" value="500" /></label>
+              <label class="check wide"><input id="dry-run" type="checkbox" /> 仅预览，不写入飞书</label>
+            </div>
+            <div class="preview-head"><h2>数据预览</h2><button id="preview" class="secondary">读取 10 行</button></div>
+            <div id="preview-table" class="preview-table empty-state">点击“读取 10 行”查看源数据。</div>
+            <div id="run-result" class="run-result hidden"></div>
+            <div class="form-actions"><button class="secondary prev">← 上一步</button><button id="run-sync" class="primary">开始同步 <span>↗</span></button></div>
+          </section>
+
+          <section class="history panel"><div class="preview-head"><div><h2>最近同步任务</h2><p>任务在后台执行，页面可安全关闭。</p></div><button id="reload-runs" class="icon-button">↻</button></div><div id="runs" class="runs empty-state">暂无同步任务</div></section>
+        </section>
+      </main>
+    </div>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

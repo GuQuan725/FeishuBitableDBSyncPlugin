@@ -1,0 +1,11 @@
+node_modules
+dist
+.pnpm-store
+.data
+.tmp-*
+.env
+.git
+.gitignore
+test
+*.log
+*.db

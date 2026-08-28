@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.data/
+.pnpm-store/
+.tmp-*/
+.env
+*.log
+*.db
+coverage/
+.DS_Store

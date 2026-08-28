@@ -1,0 +1,27 @@
+{
+  "name": "feishu-bitable-db-sync",
+  "version": "0.1.0",
+  "private": true,
+  "description": "飞书多维表格数据库同步插件",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/src/index.js",
+    "test": "tsc -p tsconfig.json && node --test dist/test/core.test.js dist/test/db-adapters.test.js dist/test/server.test.js"
+  },
+  "dependencies": {},
+  "optionalDependencies": {
+    "mysql2": "^3.11.5",
+    "pg": "^8.13.1",
+    "better-sqlite3": "^11.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
